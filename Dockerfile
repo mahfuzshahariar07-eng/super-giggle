@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://tailscale.com/install.sh | sh
 
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+COPY connect.sh /connect.sh
+
+RUN chmod +x /start.sh /connect.sh
 
 EXPOSE 2711
 
