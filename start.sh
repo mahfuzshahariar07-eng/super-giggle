@@ -18,8 +18,9 @@ fi
 
 export TARGET_HOST="${TARGET%:*}"
 export TARGET_PORT="${TARGET##*:}"
+export LISTEN_PORT="${LISTEN_PORT}"
 
-echo "Starting Tailscale in userspace networking mode..."
+echo "Starting Tailscale userspace networking..."
 
 tailscaled \
   --tun=userspace-networking \
@@ -39,11 +40,7 @@ tailscale up \
 echo "Tailscale status:"
 tailscale status || true
 
-echo "Testing target connection via Tailscale SOCKS5..."
-timeout 10 ncat --proxy 127.0.0.1:1055 --proxy-type socks5 "${TARGET_HOST}" "${TARGET_PORT}" < /dev/null || true
+echo "Starting Python TCP proxy:"
+echo "0.0.0.0:${LISTEN_PORT} -> ${TARGET_HOST}:${TARGET_PORT} via Tailscale SOCKS5 127.0.0.1:1055"
 
-echo "Forwarding public TCP :${LISTEN_PORT} -> ${TARGET_HOST}:${TARGET_PORT} via Tailscale SOCKS5 proxy"
-
-exec socat -d -d \
-  "TCP-LISTEN:${LISTEN_PORT},fork,reuseaddr" \
-  "EXEC:/connect.sh,nofork"
+exec python3 -u /proxy.py
